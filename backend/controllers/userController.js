@@ -48,6 +48,19 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc        Get all users
+// @route       GET /api/users/
+// @access      Admin
+const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({});
+
+  if (users.length === 0) {
+    throw new Error("There are no users!");
+  }
+
+  res.status(200).json(users);
+});
+
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
@@ -55,4 +68,5 @@ const generateToken = (id) => {
 
 module.exports = {
   registerUser,
+  getAllUsers,
 };
