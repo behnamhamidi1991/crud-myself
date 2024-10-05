@@ -13,6 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use("/api/users", require("./routes/userRoute.js"));
+app.use("/api/blog", require("./routes/blogRoute.js"));
 
 connectDB();
 

@@ -10,9 +10,9 @@ dotenv.config();
 // @route       POST /api/users/
 // @access      public
 const registerUser = asyncHandler(async (req, res) => {
-  const { username, email, password } = req.body;
+  const { name, email, password } = req.body;
 
-  if (!username || !email || !password) {
+  if (!name || !email || !password) {
     throw new Error("You must fill in all required fields!");
   }
 
@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Create user
   const user = await User.create({
-    username,
+    name,
     email,
     password: hashedPassword,
   });
@@ -38,7 +38,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (user) {
     res.status(201).json({
       _id: user.id,
-      username: user.username,
+      name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -61,6 +61,58 @@ const getAllUsers = asyncHandler(async (req, res) => {
   res.status(200).json(users);
 });
 
+// @desc        Authenticate user
+// @route       POST /api/users/login
+// @access      Public
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  // Check for user email
+  const user = await User.findOne({ email });
+
+  if (user && (await bcrypt.compare(password, user.password))) {
+    res.json({
+      _id: user.id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(400);
+    throw new Error("Invalid Credentials");
+  }
+});
+
+// @desc        Delete user
+// @route       DELETE /api/users/:id
+// @access      Admin
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+
+  if (!user) {
+    throw new Error("User does not exist!");
+  }
+
+  res.status(200).json(user);
+});
+
+// @desc        Update user
+// @route       PUT /api/users/:id
+// @access      Private
+const updateUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    throw new Error("User does not exist!");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
+
+  res.status(200).json(updatedUser);
+});
+
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
@@ -69,4 +121,7 @@ const generateToken = (id) => {
 module.exports = {
   registerUser,
   getAllUsers,
+  loginUser,
+  deleteUser,
+  updateUser,
 };
