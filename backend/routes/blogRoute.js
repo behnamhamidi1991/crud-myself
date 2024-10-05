@@ -9,6 +9,6 @@ const {
 
 router.post("/", protect, createPost);
 router.get("/", getAllPosts);
-router.delete("/:id", deletePost);
+router.delete("/:id", protect, deletePost);
 
 module.exports = router;
